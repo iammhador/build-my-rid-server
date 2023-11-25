@@ -21,6 +21,11 @@ const client = new MongoClient(uri, {
 async function run(req, res) {
   try {
     await client.connect();
+
+    app.listen(port, () => {
+      console.log(`Example app listening on port ${port}`);
+    });
+
     const productCollection = client.db("buildmyrig").collection("products");
     const categoriesCollection = client
       .db("buildmyrig")
@@ -50,6 +55,27 @@ async function run(req, res) {
           status: "success",
           message: "All products found successfully",
           data: products,
+        });
+      }
+    });
+
+    app.get("/api/products/:id", async (req, res) => {
+      const productId = req.params.id;
+
+      const product = await productCollection.findOne({
+        _id: new ObjectId(productId),
+      });
+
+      if (!product) {
+        res.status(404).json({
+          status: "error",
+          message: "Product not found",
+        });
+      } else {
+        res.status(200).json({
+          status: "success",
+          message: "Single product details found successfully",
+          data: product,
         });
       }
     });
@@ -318,9 +344,5 @@ async function run(req, res) {
 run().catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  res.send("Build My Rig Server Working Perfectly");
 });
